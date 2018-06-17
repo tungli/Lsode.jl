@@ -5,12 +5,19 @@
 
 Creates a function named `f_name` which sets the derivatives vector of an ODE system.
 
-For now the user is limited to using only the `dy`, `y` and `t` symbols.
+User is limited to using only the `dy`, `y` and `t` symbols.
 
 Example:
 ```
 @diff_eq F begin
 dy[1] = -y[1]
+end
+```
+
+For vectorized function use `.=` :
+```
+@diff_eq
+dy .= -y
 end
 ```
 """
@@ -36,7 +43,7 @@ end
 
 Creates a function named `jac_name` which sets the values of the Jacobian matrix associated with an ODE system.
 
-For now the user is limited to using only the `pd` (Jacobian matrix), `y` and `t` symbols.
+User is limited to using only the `pd` (Jacobian matrix), `y` and `t` symbols.
 
 Example:
 ```
@@ -48,7 +55,7 @@ end
 macro diff_eq_jac(jac_name,jac_eqs)
     #pd(i,j) = df(i)/dy(j)
     a = quote
-        $(jac_name) = cfunction((pn::Ref{Int64}, pt::Ref{Float64},py::Ptr{Float64}, 
+        $(jac_name) = cfunction((pn::Ref{Int64}, pt::Ref{Float64},py::Ptr{Float64},
                                  pml::Ptr{Int64}, pmu::Ptr{Int64},ppd::Ptr{Float64},
                                  pnrpd::Ptr{Int64}) -> begin
                                 n = unsafe_load(pn)
@@ -69,6 +76,3 @@ macro diff_eq_jac(jac_name,jac_eqs)
     end
     esc(a)
 end
-
-
-

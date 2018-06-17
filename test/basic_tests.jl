@@ -9,7 +9,7 @@ end
 
 #From the book Numerical recipes
 @diff_eq F2 begin
-    dy[1] = 998*y[1] + 1998*y[2]  
+    dy[1] = 998*y[1] + 1998*y[2]
     dy[2] = -999*y[1] - 1999*y[2]
 end
 @diff_eq_jac J2 begin
@@ -19,6 +19,13 @@ end
     pd[2,2] = -1999
 end
 
+@diff_eq F3 begin
+    dy .= -y
+end
+@diff_eq_jac J3 begin
+    pd .= -1.0*ones(1,1)
+end
+
 y0 = [1.0]
 t = linspace(0,1,10)
 
@@ -26,7 +33,7 @@ y02 = [1.0,0.0]
 
 s_exp = exp.(-t)
 
-@show s_exp2 = hcat( [2*exp.(-t) - exp.(-1000*t),
+s_exp2 = hcat( [2*exp.(-t) - exp.(-1000*t),
                 -exp.(-t) + exp.(-1000*t)]... )
 
 tol = 1.0e-2
@@ -50,5 +57,6 @@ s7 = hcat(ode(F2,J2,t,y02,verbose=false)...)'  #jacobian supplied
 s8 = hcat(ode(F2,t,y02,stiff=false,verbose=false)...)'  #jacobian ignored, not stiff
 @test sqrt(sum(abs2, s8 - s_exp2)) < tol
 
-
-
+#Vectorized
+s9 = squeeze(hcat(ode(F3,J3,t,y0,verbose=false)...)',2)  #jacobian supplied
+@test all( s9 .≈ s2 )

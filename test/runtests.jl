@@ -6,6 +6,6 @@ else
 end
 
 # write your own tests here
-@testset "TESTS" begin
+@testset "Basic Tests" begin
     include("basic_tests.jl")
 end
