@@ -8,9 +8,10 @@ module Lsode
 #TODO Copy the ITOL behaviour from the odepack.f
 #TODO Make macros more flexible -- e.g. other symbol use
 
-export ode,@diff_eq,@diff_eq_jac
+export ode,@diff_eq,@diff_eq_jac,chem2diff
 
 include("macros.jl")
+include("chem2diff.jl")
 
 const istate_dict = Dict{Int64,String}(
                                        1 =>"Nothing was done, because TOUT was equal to T.",
