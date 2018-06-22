@@ -1,12 +1,13 @@
 """
-`function chem2diff(s::String)`
+`chem2diff(s::String)`
 
 From chemical equations get differential equations in the form needed for `@diff_eq`
 
 Example:
 ```
 s = "1.0,2.0: 2A -> B"
-chem2diff(s)
+a = chem2diff(s)
+@eval @diff_eq F \$a
 ```
 """
 function chem2diff(s::String)
@@ -57,7 +58,10 @@ function chem2diff(s::String)
         end
         diff_eq[i] = diff_eq[i][1:end-3]*"   #y[$(i)] <--> $(s)"
     end
-    join("#".*reactions,'\n')*"\n"*join(diff_eq,'\n')
+    a = join("#".*reactions,'\n')*"\n"*join(diff_eq,'\n')
+    println(a)
+    a = "begin\n"*a*"\nend"
+    parse(a)
 end
 
 function get_rates(reaction::AbstractString)
