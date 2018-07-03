@@ -16,7 +16,7 @@ end
 
 For vectorized function use `.=` :
 ```
-@diff_eq
+@diff_eq begin
 dy .= -y
 end
 ```
