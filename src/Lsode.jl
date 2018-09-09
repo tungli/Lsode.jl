@@ -46,6 +46,7 @@ end
 
 ODE solver. The system and the (optional) Jacobian functions should be created with `@diff_eq` and `@diff_eq_jac` macros.
 Outputs a vector of solutions at `t_vec` times. 
+First value of `t_vec` is the initial time.
 """
 function ode(c_ode_system::Ptr{Void}, c_jacobian::Ptr{Void},
              t_vec::AbstractVector, y0::AbstractVector,
