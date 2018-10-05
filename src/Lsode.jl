@@ -32,23 +32,23 @@ Call DLSODE from the FORTRAN 'odepack' library. Updates the variables `Y`, `T`, 
 function dlsode!(F, NEQ, Y, T, TOUT, ITOL, RTOL, ATOL, ITASK,ISTATE, IOPT,
                  RWORK, LRW, IWORK, LIW, JAC, MF;verbose=true)
 
-    ccall((:dlsode_, "libodepack"),Void,
-          (Ptr{Void},Ref{Int64},Ptr{Array{Float64,1}},Ref{Float64},Ref{Float64},Ref{Int64},
+    ccall((:dlsode_, "libodepack"),Cvoid,
+          (Ptr{Cvoid},Ref{Int64},Ptr{Array{Float64,1}},Ref{Float64},Ref{Float64},Ref{Int64},
            Ref{Float64},Ptr{Array{Float64,1}},Ref{Int64},Ref{Int64},Ref{Int64},Ref{Float64},
-           Ref{Int64},Ref{Int64},Ref{Int64},Ptr{Void},Ref{Int64}),
+           Ref{Int64},Ref{Int64},Ref{Int64},Ptr{Cvoid},Ref{Int64}),
           F, NEQ, Y, T, TOUT, ITOL, RTOL, ATOL, ITASK, ISTATE, IOPT,
           RWORK, LRW, IWORK, LIW, JAC, MF)
     verbose ? println("$(istate_dict[ISTATE.x])") : nothing
 end
 
 """
-`ode(c_ode_system::Ptr{Void}, [c_jacobian::Ptr{Void}], t_vec::AbstractVector, y0::AbstractVector, atol::AbstractVector=1.0e-3*ones(length(y0)),rtol::Real = 1.0e-3,[verbose=true], [tol_mode = 2])`
+`ode(c_ode_system::Ptr{Cvoid}, [c_jacobian::Ptr{Cvoid}], t_vec::AbstractVector, y0::AbstractVector, atol::AbstractVector=1.0e-3*ones(length(y0)),rtol::Real = 1.0e-3,[verbose=true], [tol_mode = 2])`
 
 ODE solver. The system and the (optional) Jacobian functions should be created with `@diff_eq` and `@diff_eq_jac` macros.
 Outputs a vector of solutions at `t_vec` times. 
 First value of `t_vec` is the initial time.
 """
-function ode(c_ode_system::Ptr{Void}, c_jacobian::Ptr{Void},
+function ode(c_ode_system::Ptr{Cvoid}, c_jacobian::Ptr{Cvoid},
              t_vec::AbstractVector, y0::AbstractVector,
              atol::AbstractVector=1.0e-3*ones(length(y0)),
              rtol::Real = 1.0e-3;
@@ -56,7 +56,7 @@ function ode(c_ode_system::Ptr{Void}, c_jacobian::Ptr{Void},
 
     y = deepcopy(y0)
     t_vec_out = deepcopy(t_vec)
-    y_vec = Vector{Vector{Float64}}(length(t_vec))
+    y_vec = Vector{Vector{Float64}}(undef,length(t_vec))
     n = length(y0)
     @assert length(atol) == n "
         Length of absolute tolerance vector ($(length(atol))) does not match the length of initial conditions vector ($(n))."
@@ -67,8 +67,8 @@ function ode(c_ode_system::Ptr{Void}, c_jacobian::Ptr{Void},
     mf = 21
     lrw = Int64(22 + 9*n + n^2)
     liw = Int64(20 + n)
-    rwork = zeros(Vector{Float64}(lrw))
-    iwork = zeros(Vector{Int64}(liw))
+    rwork = zeros(Float64,lrw)
+    iwork = zeros(Int64,liw)
 
     t = Ref{Float64}(t_vec[1])
 
@@ -82,14 +82,14 @@ function ode(c_ode_system::Ptr{Void}, c_jacobian::Ptr{Void},
     y_vec
 end
 
-function ode(c_ode_system::Ptr{Void},
+function ode(c_ode_system::Ptr{Cvoid},
              t_vec::AbstractVector, y0::AbstractVector,
              atol::AbstractVector=1.0e-3*ones(length(y0)),
              rtol::Real=1.0e-3;
              verbose=true, stiff=true, tol_mode=2)
 
     y = deepcopy(y0)
-    y_vec = Vector{Vector{Float64}}(length(t_vec))
+    y_vec = Vector{Vector{Float64}}(undef,length(t_vec))
     n = length(y0)
     @assert length(atol) == n
     itol = tol_mode
@@ -106,14 +106,11 @@ function ode(c_ode_system::Ptr{Void},
         liw = 20
     end
 
-    rwork = zeros(Vector{Float64}(lrw))
-    iwork = zeros(Vector{Int64}(liw))
+    rwork = zeros(Float64,lrw)
+    iwork = zeros(Int64,liw)
 
     t = Ref{Float64}(t_vec[1])
-    function fake_jac_calc(x1,x2,x3,x4,x5,x6,x7)
-        return nothing
-    end
-    fake_jac = cfunction(fake_jac_calc,Void,(Ptr{Int64},Ptr{Float64},Ptr{Float64},
+    fake_jac = @cfunction((x1,x2,x3,x4,x5,x6,x7)->nothing,Cvoid,(Ptr{Int64},Ptr{Float64},Ptr{Float64},
                                              Ptr{Int64},Ptr{Int64},Ptr{Float64},Ptr{Int64}))
 
     for (i,tout) in enumerate(t_vec)

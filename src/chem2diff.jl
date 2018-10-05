@@ -18,7 +18,7 @@ function chem2diff(s::String)
     end
     species = unique(vcat(get_species.(reactions)...))
     diff_eq = ["dy[$(i)] = " for i in 1:length(species) ]
-    info("\n"*join([ "$s <---> dy[$i]"  for (i,s) in enumerate(species) ],'\n'))
+    @info("\n"*join([ "$s <---> dy[$i]"  for (i,s) in enumerate(species) ],'\n'))
 
     for (i,s) in enumerate(species)
         for r in reactions
@@ -61,7 +61,7 @@ function chem2diff(s::String)
     a = join("#".*reactions,'\n')*"\n"*join(diff_eq,'\n')
     println(a)
     a = "begin\n"*a*"\nend"
-    parse(a)
+    Meta.parse(a)
 end
 
 function get_rates(reaction::AbstractString)
@@ -69,7 +69,7 @@ function get_rates(reaction::AbstractString)
     a = sum([ i == ',' for i in rates ])
     @assert any(a .== [0,1]) "Incorrect number ($(a)) of rates in $(reaction)"
     if a == 0
-        warn("Reaction $(reaction) has only one rate. Assuming this is the forward rate...")
+        @warn("Reaction $(reaction) has only one rate. Assuming this is the forward rate...")
         return (parse(Float64,rates),0.0)
     else
         rates = split(rates,',')
@@ -89,7 +89,7 @@ end
 
 function sep_coefficient(s::AbstractString)
     a = '1'; i = 0; coef = ""
-    while isnumber(a) || a == '.'
+    while isnumeric(a) || a == '.'
         i += 1
         a = s[i]
         coef *= string(a)
@@ -99,13 +99,13 @@ function sep_coefficient(s::AbstractString)
     end
     coef = coef[1:end-1]
     c = parse(Float64,coef)
-    sp = strip(replace(s,coef,""))
+    sp = strip(replace(s,coef=>""))
     c,sp
 end
 
 function get_species(reaction::AbstractString)
     c = split(reaction,':')[2]
-    a = replace(c,"->"," + ")
+    a = replace(c,"->"=>" + ")
     s = [ String(sep_coefficient(i)[2]) for i in strip.(split(a,'+')) ]
 end
 

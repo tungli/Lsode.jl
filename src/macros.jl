@@ -23,7 +23,7 @@ end
 """
 macro diff_eq(f_name,sys_eq)
     a = quote
-        $(f_name) = cfunction((pn::Ref{Int64}, pt::Ref{Float64},py::Ptr{Float64}, pdy::Ptr{Float64}) -> begin
+        $(f_name) = @cfunction((pn::Ref{Int64}, pt::Ref{Float64},py::Ptr{Float64}, pdy::Ptr{Float64}) -> begin
                                   n = unsafe_load(pn)
                                   t = unsafe_load(pt)
                                   y = unsafe_wrap(Array, py, n)
@@ -32,7 +32,7 @@ macro diff_eq(f_name,sys_eq)
                                   $(sys_eq)
                                   return nothing
                               end,
-                              Void,(Ptr{Int64},Ptr{Float64},Ptr{Float64},Ptr{Float64}))
+                              Cvoid,(Ptr{Int64},Ptr{Float64},Ptr{Float64},Ptr{Float64}))
     end
     esc(a)
 end
@@ -55,7 +55,7 @@ end
 macro diff_eq_jac(jac_name,jac_eqs)
     #pd(i,j) = df(i)/dy(j)
     a = quote
-        $(jac_name) = cfunction((pn::Ref{Int64}, pt::Ref{Float64},py::Ptr{Float64},
+        $(jac_name) = @cfunction((pn::Ref{Int64}, pt::Ref{Float64},py::Ptr{Float64},
                                  pml::Ptr{Int64}, pmu::Ptr{Int64},ppd::Ptr{Float64},
                                  pnrpd::Ptr{Int64}) -> begin
                                 n = unsafe_load(pn)
@@ -70,7 +70,7 @@ macro diff_eq_jac(jac_name,jac_eqs)
                                 return nothing
 
                             end
-                            ,Void,(Ptr{Int64},Ptr{Float64},Ptr{Float64},
+                            ,Cvoid,(Ptr{Int64},Ptr{Float64},Ptr{Float64},
                                    Ptr{Int64},Ptr{Int64},Ptr{Float64},Ptr{Int64}))
 
     end

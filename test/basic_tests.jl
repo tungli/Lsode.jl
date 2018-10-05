@@ -27,7 +27,7 @@ end
 end
 
 y0 = [1.0]
-t = linspace(0,1,10)
+t = range(0,stop=1,length=10)
 
 y02 = [1.0,0.0]
 
@@ -38,15 +38,15 @@ s_exp2 = hcat( [2*exp.(-t) - exp.(-1000*t),
 
 tol = 1.0e-2
 
-s1 = squeeze(hcat(ode(F,t,y0,verbose=false)...)',2)   #jacobian generated, stiff
+s1 = hcat(ode(F,t,y0,verbose=false)...)'   #jacobian generated, stiff
 @test sqrt(sum(abs2, s1 - s_exp)) < tol
-s2 = squeeze(hcat(ode(F,J,t,y0,verbose=false)...)',2)  #jacobian supplied
+s2 = hcat(ode(F,J,t,y0,verbose=false)...)'  #jacobian supplied
 @test sqrt(sum(abs2, s2 - s_exp)) < tol
-s3 = squeeze(hcat(ode(F,t,y0,stiff=false,verbose=false)...)',2)  #jacobian ignored, not stiff
+s3 = hcat(ode(F,t,y0,stiff=false,verbose=false)...)'  #jacobian ignored, not stiff
 @test sqrt(sum(abs2, s3 - s_exp)) < tol
-s4 = squeeze(hcat(ode(F,J,t,y0,[1.0e-4],verbose=false)...)',2)  #increased absolute tolerance
+s4 = hcat(ode(F,J,t,y0,[1.0e-4],verbose=false)...)'  #increased absolute tolerance
 @test sqrt(sum(abs2, s2 - s_exp)) > sqrt(sum(abs2, s4 - s_exp))
-s5 = squeeze(hcat(ode(F,J,t,y0,[1.0e-4],1.0e-4,verbose=false)...)',2)  #increased relative tolerance
+s5 = hcat(ode(F,J,t,y0,[1.0e-4],1.0e-4,verbose=false)...)'  #increased relative tolerance
 @test sqrt(sum(abs2, s5 - s_exp)) < sqrt(sum(abs2, s4 - s_exp))
 
 #Stiffs
@@ -58,5 +58,5 @@ s8 = hcat(ode(F2,t,y02,stiff=false,verbose=false)...)'  #jacobian ignored, not s
 @test sqrt(sum(abs2, s8 - s_exp2)) < tol
 
 #Vectorized
-s9 = squeeze(hcat(ode(F3,J3,t,y0,verbose=false)...)',2)  #jacobian supplied
+s9 = hcat(ode(F3,J3,t,y0,verbose=false)...)'  #jacobian supplied
 @test all( s9 .≈ s2 )
